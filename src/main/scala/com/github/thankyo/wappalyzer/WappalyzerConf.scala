@@ -9,7 +9,16 @@ case class WappalyzerConf(
 ) {
 
   def analyze(res: StandaloneWSResponse): Seq[App] = {
-    apps.filter(_.analyze(res).nonEmpty)
+    val relApps = apps.filter(_.analyze(res).nonEmpty)
+    val implied = relApps.flatMap(_.implies).flatMap(impl => apps.find(_.id == impl.appId))
+    relApps ++ implied
+  }
+
+  def analyzeByApp(appId: AppId, res: StandaloneWSResponse): Boolean = {
+    val appConf = apps.find(_.id == appId).get
+    val impliesApp = apps.filter(_.implies.contains(appId))
+    val relHints = (appConf :: impliesApp.toList).flatMap(_.analyze(res))
+    relHints.nonEmpty
   }
 
   def getHintsFor(appId: AppId): Seq[AppHint] = {
