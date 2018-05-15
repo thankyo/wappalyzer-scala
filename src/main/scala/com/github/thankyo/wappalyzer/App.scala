@@ -30,8 +30,8 @@ object WithConfidenceConfig {
   def parseVersion(str: String): Option[String] = {
     str.split(";")
       .map(_.split(":"))
-      .find(parts => parts.length > 0 && parts(0).trim.equalsIgnoreCase("confidence"))
-      .map(parts => parts(1))
+      .find(parts => parts.length > 0 && parts(0).trim.equalsIgnoreCase("version"))
+      .map(parts => parts(1).replaceAllLiterally("\\",""))
   }
 
 }

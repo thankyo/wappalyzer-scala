@@ -10,6 +10,13 @@ class WappalyzerConfSpec extends Specification {
   val jsonStr = Source.fromURL(getClass.getResource("/testApps.json")).mkString
   val wapJson = Json.parse(jsonStr)
 
+  def getApp(appId: AppId): Option[App] = {
+    val appsJson = (wapJson \ "apps").as[JsObject]
+    val apps = appsJson.as[Seq[App]]
+
+    apps.find(_.id == appId)
+  }
+
   "Read specs" in {
     val wapConf = wapJson.asOpt[WappalyzerConf]
     wapConf shouldNotEqual None
@@ -33,10 +40,7 @@ class WappalyzerConfSpec extends Specification {
   }
 
   "Check MaxCDN" in {
-    val appsJson = (wapJson \ "apps").as[JsObject]
-    val apps = appsJson.as[Seq[App]]
-
-    val maxCDNOpt = apps.find(_.id == "MaxCDN")
+    val maxCDNOpt = getApp("MaxCDN")
     maxCDNOpt shouldNotEqual None
 
     val maxCDN = maxCDNOpt.get
@@ -48,6 +52,30 @@ class WappalyzerConfSpec extends Specification {
       Hint("Server", Some("^NetDNA"), None, None),
       Hint("X-CDN-Forward", Some("^maxcdn$"), None, None)
     )
+  }
+
+  "Check Acquia Cloud" in {
+    val aquiaCloudOpt = getApp("Acquia Cloud")
+    aquiaCloudOpt shouldNotEqual None
+
+    val aquiaCloud = aquiaCloudOpt.get
+    aquiaCloud.implies shouldEqual Seq(
+      AppImply("Drupal", Some(95), None)
+    )
+  }
+
+  "Check Livefyre" in {
+    val livefyreOpt = getApp("Livefyre")
+    livefyreOpt shouldNotEqual None
+
+    val livefyre = livefyreOpt.get
+
+    val jsHintOpt = livefyre.hint.js.find(_.name == "L.version")
+    jsHintOpt shouldNotEqual None
+
+    val jsHint = jsHintOpt.get
+    jsHint.version shouldEqual Some("1")
+    jsHint.confidence shouldEqual Some(0)
   }
 
   "Parsed valid" in {
