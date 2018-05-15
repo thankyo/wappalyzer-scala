@@ -3,7 +3,8 @@ package com.github.thankyo.wappalyzer
 import org.specs2.mutable.Specification
 import play.api.libs.json.{JsObject, Json}
 
-import scala.io.{Source}
+import scala.io.Source
+import scala.util.matching.Regex
 
 class WappalyzerConfSpec extends Specification {
 
@@ -49,8 +50,8 @@ class WappalyzerConfSpec extends Specification {
     maxCDN.website shouldEqual "http://www.maxcdn.com"
 
     maxCDN.hint.headers shouldEqual Seq(
-      Hint("Server", Some("^NetDNA"), None, None),
-      Hint("X-CDN-Forward", Some("^maxcdn$"), None, None)
+      Hint("Server", RegexHint(Some(new Regex("^NetDNA")), None, None)),
+      Hint("X-CDN-Forward", RegexHint(Some(new Regex("^maxcdn$")), None, None))
     )
   }
 
@@ -74,8 +75,8 @@ class WappalyzerConfSpec extends Specification {
     jsHintOpt shouldNotEqual None
 
     val jsHint = jsHintOpt.get
-    jsHint.version shouldEqual Some("1")
-    jsHint.confidence shouldEqual Some(0)
+    jsHint.value.version shouldEqual Some("1")
+    jsHint.value.confidence shouldEqual Some(0)
   }
 
   "Parsed valid" in {
