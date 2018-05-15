@@ -2,6 +2,7 @@ package com.github.thankyo.wappalyzer
 
 import com.github.thankyo.wappalyzer.WithConfidenceConfig.{parseConfidence, parseVersion}
 import play.api.libs.json._
+import play.api.libs.ws.StandaloneWSResponse
 
 import scala.util.{Failure, Success, Try}
 import scala.util.matching.Regex
@@ -37,7 +38,11 @@ case class RegexHint(
   value: Option[Regex],
   confidence: Option[Int],
   version: Option[String]
-) extends WithConfidenceConfig
+) extends WithConfidenceConfig {
+
+  def matches(str: String): Boolean = value.forall(_.findAllMatchIn(str).nonEmpty)
+
+}
 
 object RegexHint {
 
@@ -76,12 +81,6 @@ case class Hint(
   value: RegexHint
 )
 
-case class AppImply(
-  appId: AppId,
-  confidence: Option[Int],
-  version: Option[String]
-) extends WithConfidenceConfig
-
 case class AppHint(
   appId: AppId,
   url: Option[RegexHint],
@@ -93,7 +92,7 @@ case class AppHint(
   script: List[RegexHint],
 ) {
 
-  def isValid(): Boolean =
+  def isValid(): Boolean = {
     url.nonEmpty ||
       js.nonEmpty ||
       cookies.nonEmpty ||
@@ -101,7 +100,68 @@ case class AppHint(
       meta.nonEmpty ||
       html.nonEmpty ||
       script.nonEmpty
+  }
+
+  private def analyzeCookies(res: StandaloneWSResponse): Seq[RegexHint] = {
+    val allCookies = res.cookies
+    val matchedHints = cookies.filter(hint => {
+      val relCookie = allCookies.find(cookie => cookie.name.toLowerCase.trim == hint.name.toLowerCase.trim)
+      relCookie.exists({
+        case cookie if hint.value.matches(cookie.toString) => true
+      })
+    })
+    matchedHints.map(_.value)
+  }
+
+  private def analyzeHeaders(res: StandaloneWSResponse): Seq[RegexHint] = {
+    val allHeaders = res.headers
+    val matchedHints = headers.filter(hint => {
+      val relHeader = allHeaders.find({ case (header, _) if (header.trim.toLowerCase == hint.name.trim.toLowerCase) => true })
+      relHeader.exists({
+        case (_, relHeaders) if relHeaders.exists(hint.value.matches) => true
+      })
+    })
+    matchedHints.map(_.value)
+  }
+
+  private def analyzeUrl(url: StandaloneWSResponse): Seq[RegexHint] = {
+    Seq.empty
+  }
+
+  private def analyzeMeta(res: StandaloneWSResponse): Seq[RegexHint] = {
+    Seq.empty
+  }
+
+  private def analyzeJs(res: StandaloneWSResponse): Seq[RegexHint] = {
+    Seq.empty
+  }
+
+  private def analyzeHtml(res: StandaloneWSResponse): Seq[RegexHint] = {
+    html.filter(_.matches(res.body))
+  }
+
+  private def analyzeScript(res: StandaloneWSResponse): Seq[RegexHint] = {
+    script.filter(_.matches(res.body))
+  }
+
+  def analyze(res: StandaloneWSResponse): Seq[RegexHint] = {
+    analyzeCookies(res) ++
+    analyzeHeaders(res) ++
+    analyzeMeta(res) ++
+    analyzeHtml(res) ++
+    analyzeUrl(res) ++
+    analyzeScript(res) ++
+    analyzeJs(res)
+  }
+
 }
+
+case class AppImply(
+  appId: AppId,
+  confidence: Option[Int],
+  version: Option[String]
+) extends WithConfidenceConfig
+
 
 case class App(
   id: AppId,
