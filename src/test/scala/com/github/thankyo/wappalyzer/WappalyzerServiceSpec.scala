@@ -60,6 +60,12 @@ class WappalyzerServiceSpec extends Specification {
       val res = Await.result(service.analyze("https://wordpress.com/"), 1 minute)
       res.map(_.id) shouldNotEqual List.empty
     }
+
+    "Error tolerant" in {
+      val res = Await.result(service.analyze("https://some.some.com/"), 1 minute)
+      res shouldEqual Seq.empty
+    }
+
   })
 
 }
