@@ -41,12 +41,22 @@ class WappalyzerConfSpec extends Specification {
 
     val maxCDN = maxCDNOpt.get
     maxCDN.cats shouldEqual List(31)
-    maxCDN.headers shouldEqual Seq(
+    maxCDN.icon shouldEqual Some("MaxCDN.png")
+    maxCDN.website shouldEqual "http://www.maxcdn.com"
+
+    maxCDN.hint.headers shouldEqual Seq(
       Hint("Server", Some("^NetDNA")),
       Hint("X-CDN-Forward", Some("^maxcdn$"))
     )
-    maxCDN.icon shouldEqual Some("MaxCDN.png")
-    maxCDN.website shouldEqual "http://www.maxcdn.com"
+  }
+
+  "All apps are valid" in {
+    val appsJson = (wapJson \ "apps").as[JsObject]
+    val apps = appsJson.as[Seq[App]]
+
+    val invalidApps = apps.filter(!_.isValid).map(_.id)
+
+    invalidApps shouldEqual Seq.empty
   }
 
 }

@@ -17,15 +17,32 @@ case class App(
   icon: Option[String],
   url: Option[String],
   cats: List[CategoryId],
+  excludes: List[AppId],
+  implies: List[AppId],
+
+  hint: AppHint
+) {
+
+  def isValid: Boolean = hint.isValid()
+
+}
+
+case class AppHint(
   js: Seq[Hint],
   cookies: Seq[Hint],
   headers: Seq[Hint],
   meta: Seq[Hint],
   html: List[String],
   script: List[String],
-  excludes: List[AppId],
-  implies: List[AppId]
-)
+) {
+
+  def isValid(): Boolean = js.nonEmpty ||
+    cookies.nonEmpty ||
+    headers.nonEmpty ||
+    meta.nonEmpty ||
+    html.nonEmpty ||
+    script.nonEmpty
+}
 
 case class AppOpt(
   id: AppId,
@@ -56,19 +73,25 @@ case class AppOpt(
     case None => Seq.empty[Hint]
   }
 
-  def asApp(): App = {
-    new App(
-      id = id,
-      website = website,
-      icon = icon,
-      url = url,
-      cats = cats.getOrElse(List.empty[CategoryId]),
+  def asAppHint(): AppHint = {
+    AppHint(
       js = parseHints(js),
       headers = parseHints(headers),
       meta = parseHints(meta),
       cookies = parseHints(cookies),
       html = asList(html),
-      script = asList(script),
+      script = asList(script)
+    )
+  }
+
+  def asApp(): App = {
+    App(
+      id = id,
+      website = website,
+      icon = icon,
+      url = url,
+      cats = cats.getOrElse(List.empty[CategoryId]),
+      hint = asAppHint(),
       excludes = asList(excludes),
       implies = asList(implies)
     )
@@ -91,12 +114,12 @@ object App {
 
   implicit val hintFormat: OFormat[Seq[Hint]] = new OFormat[Seq[Hint]] {
     override def writes(o: Seq[Hint]): JsObject = {
-      JsObject(o.map({ case Hint(name, value) => name -> JsString(value.getOrElse(""))}))
+      JsObject(o.map({ case Hint(name, value) => name -> JsString(value.getOrElse("")) }))
     }
 
     override def reads(json: JsValue): JsResult[Seq[Hint]] = json match {
       case obj: JsObject =>
-        val hints = obj.value.map({ case (field, jsVal) => Hint(field, jsVal.asOpt[String])})
+        val hints = obj.value.map({ case (field, jsVal) => Hint(field, jsVal.asOpt[String]) })
         JsSuccess(hints.toSeq)
     }
   }
@@ -107,6 +130,8 @@ object App {
   )
 
   implicit val appListJsonFormat: Reads[Seq[App]] = appOptJsonFormat.map(_.map(_.asApp))
+
+  implicit val appHintFormat = Json.format[AppHint]
 
   implicit val appWrites: Writes[App] = Json.format[App]
 
