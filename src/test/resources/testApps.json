@@ -1588,17 +1588,6 @@
       "implies": "Node.js",
       "website": "http://catberry.org"
     },
-    "Catwalk": {
-      "cats": [
-        22
-      ],
-      "headers": {
-        "Server": "Catwalk\\/?([\\d\\.]+)?\\;version:\\1"
-      },
-      "icon": "Catwalk.png",
-      "implies": "Canon",
-      "website": "http://www.canon.com"
-    },
     "CDN77": {
       "cats": [
         31
@@ -11929,7 +11918,7 @@
       "html": "<!--\\s+OTRS: Copyright \\d+-\\d+, OTRS AG",
       "script": "^/otrs-web/js/",
       "icon": "otrs.png",
-      "implies": "perl",
+      "implies": "Perl",
       "website": "https://www.otrs.com"
     },
     "ownCloud": {

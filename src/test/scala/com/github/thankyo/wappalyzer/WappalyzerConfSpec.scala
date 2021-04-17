@@ -37,7 +37,7 @@ class WappalyzerConfSpec extends Specification {
 
     apps.size shouldNotEqual 0
     apps.size shouldEqual appsJson.value.size
-    apps.size shouldEqual 1062
+    apps.size shouldEqual 1061
   }
 
   "Check MaxCDN" in {
@@ -49,10 +49,10 @@ class WappalyzerConfSpec extends Specification {
     maxCDN.icon shouldEqual Some("MaxCDN.png")
     maxCDN.website shouldEqual "http://www.maxcdn.com"
 
-    maxCDN.hint.headers shouldEqual Seq(
+    maxCDN.hint.headers.toString() shouldEqual Seq(
       Hint("Server", RegexHint(Some(new Regex("^NetDNA")), None, None)),
       Hint("X-CDN-Forward", RegexHint(Some(new Regex("^maxcdn$")), None, None))
-    )
+    ).toString()
   }
 
   "Check Acquia Cloud" in {

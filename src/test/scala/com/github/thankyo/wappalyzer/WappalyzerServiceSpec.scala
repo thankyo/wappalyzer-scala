@@ -42,17 +42,17 @@ class WappalyzerServiceSpec extends Specification {
     }
 
     "Negative for tumblr" in {
-      val isTumblr = Await.result(service.analyzeByApp("Tumblr", "http://wordpress.loveit.tips/"), 1 minute)
+      val isTumblr = Await.result(service.analyzeByApp("Tumblr", "http://wordpress.com/"), 1 minute)
       isTumblr shouldEqual false
     }
 
     "Positive for WordPress" in {
-      val isTumblr = Await.result(service.analyzeByApp("WordPress", "http://wordpress.loveit.tips/"), 1 minute)
+      val isTumblr = Await.result(service.analyzeByApp("WordPress", "http://wordpress.com/"), 1 minute)
       isTumblr shouldEqual true
     }
 
     "Negative for WordPress" in {
-      val isTumblr = Await.result(service.analyzeByApp("WordPress", "https://tumblr.loveit.tips/"), 1 minute)
+      val isTumblr = Await.result(service.analyzeByApp("Tumblr", "https://wordpress.com/"), 1 minute)
       isTumblr shouldEqual false
     }
 
