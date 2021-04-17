@@ -1,7 +1,8 @@
 organization := "com.github.thankyo"
 name := "wappalyzer-scala"
 
-version := "0.3"
+version := "0.0.3"
+versionScheme := Some("semver-spec")
 
 scalaVersion := "2.13.5"
 
